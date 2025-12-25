@@ -1,0 +1,117 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light mode colors */
+    --color-primary: #4142fe;
+    --color-surface: #ffffff;
+    --color-surface-alt: #f9fafb;
+    --color-text-primary: #101828;
+    --color-text-secondary: #667085;
+    --color-border: #eaecf0;
+    --color-success: #12b76a;
+    --color-warning: #f79009;
+    --color-error: #f04438;
+  }
+
+  .dark {
+    /* Dark mode colors */
+    --color-surface: #1e293b;
+    --color-surface-alt: #0f172a;
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #94a3b8;
+    --color-border: #334155;
+  }
+
+  * {
+    @apply border-border-light dark:border-border-dark;
+  }
+
+  body {
+    @apply bg-surface-light dark:bg-surface-dark-alt;
+    @apply text-text-primary-light dark:text-text-primary-dark;
+    @apply font-sans;
+    @apply antialiased;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-surface-light-alt dark:bg-surface-dark;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border-light dark:bg-border-dark rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-text-secondary-light dark:bg-text-secondary-dark;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .family-casual {
+    font-family: "Poppins", sans-serif;
+    font-style: italic;
+  }
+
+  /* Custom Animations for Hero */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-in-from-left {
+    from {
+      transform: translateX(-100px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes zoom-in {
+    from {
+      transform: scale(0.9);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .animate-in {
+    animation-fill-mode: both;
+    animation-duration: 1000ms;
+  }
+
+  .fade-in {
+    animation-name: fade-in;
+  }
+  .slide-in-from-left {
+    animation-name: slide-in-from-left;
+  }
+  .zoom-in {
+    animation-name: zoom-in;
+  }
+}
