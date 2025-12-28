@@ -291,7 +291,7 @@ export const Landing = () => {
                 </Button>
               </Link>
               <Link to="/login" className="w-full sm:w-auto">
-                <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary/5 rounded-xl px-12 py-4 text-lg font-bold w-full group">
+                <Button variant="outline" size="lg" className="border-primary text-primary rounded-xl px-12 py-4 text-lg font-bold w-full group">
                   Sign In
                 </Button>
               </Link>

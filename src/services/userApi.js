@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { BASE_URL, API_ENDPOINTS } from './apiEndpoints';
+import { setConnections } from '../features/user/userSlice';
 
 export const userApi = createApi({
   reducerPath: 'userApi',
@@ -31,6 +32,33 @@ export const userApi = createApi({
     getProfile: builder.query({
       query: () => API_ENDPOINTS.USER.PROFILE,
     }),
+    getConnections: builder.query({
+      query: () => API_ENDPOINTS.AUTH.CONNECTIONS,
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setConnections(data));
+        } catch (err) {
+          console.error('Failed to fetch connections:', err);
+        }
+      },
+    }),
+    disconnectIntegration: builder.mutation({
+      query: ({ platform, accountId }) => ({
+        url: `${API_ENDPOINTS.AUTH.DISCONNECT}/${platform}/${accountId}`,
+        method: 'DELETE',
+      }),
+      // Invalidate tags or update cache could be added here if we were using tags
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          // Refetch connections to update UI
+          dispatch(userApi.endpoints.getConnections.initiate(undefined, { forceRefetch: true }));
+        } catch (err) {
+          console.error('Failed to disconnect:', err);
+        }
+      },
+    }),
   }),
 });
 
@@ -38,4 +66,6 @@ export const {
   useLoginMutation,
   useSignupMutation,
   useGetProfileQuery,
+  useLazyGetConnectionsQuery,
+  useDisconnectIntegrationMutation,
 } = userApi;

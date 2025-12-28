@@ -5,7 +5,7 @@ import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import AuthLayout from '../components/layout/AuthLayout';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { useLoginMutation } from '../services/userApi';
+import { useLoginMutation, useLazyGetConnectionsQuery } from '../services/userApi';
 import { setCredentials } from '../features/user/userSlice';
 
 const GoogleIcon = () => (
@@ -25,6 +25,7 @@ export const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [login, { isLoading }] = useLoginMutation();
+  const [getConnections] = useLazyGetConnectionsQuery();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,6 +34,8 @@ export const Login = () => {
     try {
       const result = await login({ email, password }).unwrap();
       dispatch(setCredentials(result));
+
+      getConnections();
       navigate('/dashboard/overview');
     } catch (err) {
       setErrorMsg(err.data?.message || 'Failed to sign in. Please check your credentials.');

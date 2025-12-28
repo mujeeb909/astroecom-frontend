@@ -4,11 +4,11 @@ export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/auth/login',
     SIGNUP: '/auth/register',
-    ME: '/auth/me',
+    CONNECTIONS: '/auth/connections',
+    DISCONNECT: '/auth/disconnect',
   },
   USER: {
-    PROFILE: '/user/profile',
-    UPDATE: '/user/update',
+    PROFILE: '/users/profile',
   },
 };
 

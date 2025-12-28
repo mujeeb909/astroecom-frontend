@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   user: JSON.parse(localStorage.getItem('user')) || null,
   token: localStorage.getItem('token') || null,
+  connections: null,
   isAuthenticated: !!localStorage.getItem('token'),
 };
 
@@ -32,12 +33,16 @@ const userSlice = createSlice({
       state.user = { ...state.user, ...action.payload };
       localStorage.setItem('user', JSON.stringify(state.user));
     },
+    setConnections: (state, action) => {
+      state.connections = action.payload;
+    },
   },
 });
 
-export const { setCredentials, logout, updateUser } = userSlice.actions;
+export const { setCredentials, logout, updateUser, setConnections } = userSlice.actions;
 
 export const selectCurrentUser = (state) => state.user.user;
 export const selectIsAuthenticated = (state) => state.user.isAuthenticated;
+export const selectConnections = (state) => state.user.connections;
 
 export default userSlice.reducer;
