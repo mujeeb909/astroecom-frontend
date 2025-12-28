@@ -6,6 +6,8 @@ import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import Inbox from './pages/Inbox';
 import Integrations from './pages/Integrations';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 import './index.css';
 
 function App() {
@@ -15,6 +17,8 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
             <Route path="/dashboard" element={<Navigate to="/dashboard/overview" replace />} />
             <Route path="/dashboard/overview" element={<Dashboard />} />
             <Route path="/dashboard/inbox" element={<Inbox />} />

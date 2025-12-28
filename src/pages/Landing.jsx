@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import {
   MessageSquare,
@@ -242,17 +243,19 @@ export const Landing = () => {
         <div className="bg-white rounded-full shadow-xl shadow-gray-100/50 border border-gray-100 px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xl font-bold text-text-primary-light dark:text-text-primary-dark">
-              AstroEcom.ai
+              AstroEcom
             </span>
           </div>
 
           <div className="hidden md:flex items-center gap-12 font-medium">
             <a href="#tour" className="text-gray-600 hover:text-primary transition-colors">Product tour</a>
             <div className="flex items-center gap-8">
-              <a href="#free" className="text-primary hover:text-primary-700 transition-colors">Try for free</a>
-              <Button size="md" className="bg-primary hover:bg-primary-600 rounded-full px-8 py-2 font-semibold text-white">
-                Book a demo
-              </Button>
+              <Link to="/login" className="text-primary hover:text-primary-700 transition-colors font-semibold">Sign in</Link>
+              <Link to="/signup">
+                <Button size="md" className="bg-primary hover:bg-primary-600 rounded-full px-8 py-2 font-semibold text-white">
+                  Get started
+                </Button>
+              </Link>
             </div>
           </div>
 
@@ -282,12 +285,16 @@ export const Landing = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4">
-              <Button size="lg" className="bg-primary hover:bg-primary-600 rounded-xl px-12 py-4 text-lg font-bold w-full sm:w-auto text-white">
-                Try Free
-              </Button>
-              <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary/5 rounded-xl px-12 py-4 text-lg font-bold w-full sm:w-auto group">
-                Book a demo
-              </Button>
+              <Link to="/signup" className="w-full sm:w-auto">
+                <Button size="lg" className="bg-primary hover:bg-primary-600 rounded-xl px-12 py-4 text-lg font-bold w-full text-white">
+                  Try Free
+                </Button>
+              </Link>
+              <Link to="/login" className="w-full sm:w-auto">
+                <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary/5 rounded-xl px-12 py-4 text-lg font-bold w-full group">
+                  Sign In
+                </Button>
+              </Link>
             </div>
           </Reveal>
 
