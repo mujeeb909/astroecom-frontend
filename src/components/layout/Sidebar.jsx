@@ -48,7 +48,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, className = '' }) => {
   return (
     <aside
       className={cn(
-        'group fixed left-4 top-4 bottom-4 z-50 transition-all duration-500 ease-in-out',
+        'group fixed left-4 top-20 bottom-4 z-50 transition-all duration-500 ease-in-out',
         'bg-[#0F172A] text-white rounded-[32px] flex flex-col',
         isCollapsed ? 'w-20' : 'w-72',
         className
@@ -138,13 +138,11 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, className = '' }) => {
           )}
         </button>
 
-        {/* User Profile & Logout */}
-        <div className="relative pt-2">
-          <button
-            onClick={() => setShowLogout(!showLogout)}
+        {/* User Profile - No Logout */}
+        <div className="pt-2">
+          <div
             className={cn(
-              'flex items-center gap-3 w-full p-2 hover:bg-white/10 rounded-2xl transition-all duration-300',
-              showLogout ? 'bg-white/10' : '',
+              'flex items-center gap-3 w-full p-2 rounded-2xl',
               isCollapsed ? 'justify-center' : ''
             )}
           >
@@ -157,26 +155,9 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, className = '' }) => {
                 <p className="text-[10px] uppercase font-bold text-white/40">Pro Account</p>
               </div>
             )}
-          </button>
-
-          {/* Logout Menu */}
-          {showLogout && (
-            <div
-              className={cn(
-                "absolute bottom-full left-0 w-full mb-2 p-2 bg-gray-900 rounded-2xl shadow-2xl border border-white/5 animate-in slide-in-from-bottom-2 duration-200 z-[70]",
-                isCollapsed ? "w-48 left-16 bottom-0" : ""
-              )}
-            >
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-3 w-full px-4 py-3 text-error hover:bg-error/10 rounded-xl transition-colors font-bold text-sm"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Sign Out</span>
-              </button>
-            </div>
-          )}
+          </div>
         </div>
+
       </div>
     </aside>
   );
