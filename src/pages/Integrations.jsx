@@ -142,9 +142,8 @@ export const Integrations = () => {
       return integrationsList.filter(i => i.connected);
     }
     if (activeTab === 'Available Integrations') {
-      // Show all, or show only filtered? User said "Available Integrations" likely means all options available to connect.
-      // Usually this shows everything.
-      return integrationsList;
+      // Show only platforms that are NOT connected
+      return integrationsList.filter(i => !i.connected);
     }
     return [];
   };

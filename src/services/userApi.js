@@ -37,7 +37,8 @@ export const userApi = createApi({
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          dispatch(setConnections(data));
+          // Extract the connections object from the response
+          dispatch(setConnections(data.connections));
         } catch (err) {
           console.error('Failed to fetch connections:', err);
         }
