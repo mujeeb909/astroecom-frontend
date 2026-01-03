@@ -45,9 +45,7 @@ export const useSSE = (onMessage, onBotTyping, dispatch) => {
     eventSource.addEventListener('message:new', (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log('SSE: New message received:', data);
 
-        // Invalidate RTK Query cache to trigger refetch
         if (dispatch) {
           // Invalidate conversations list
           dispatch(conversationsApi.util.invalidateTags(['Conversations']));
@@ -73,9 +71,7 @@ export const useSSE = (onMessage, onBotTyping, dispatch) => {
     eventSource.addEventListener('bot:typing', (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log('SSE: Bot typing event:', data);
 
-        // Call custom callback if provided
         if (onBotTyping) {
           onBotTyping(data);
         }
@@ -84,11 +80,10 @@ export const useSSE = (onMessage, onBotTyping, dispatch) => {
       }
     });
 
-    // Handle generic message events (fallback)
+
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log('SSE: Generic message received:', data);
       } catch (error) {
         console.error('SSE: Error parsing generic message:', error);
       }
@@ -101,11 +96,8 @@ export const useSSE = (onMessage, onBotTyping, dispatch) => {
       // Close the connection
       eventSource.close();
 
-      // Attempt reconnection after 5 seconds
-      console.log('SSE: Will attempt reconnection in 5 seconds...');
       setTimeout(() => {
         if (token && !eventSourceRef.current) {
-          console.log('SSE: Attempting to reconnect...');
           // The useEffect will handle reconnection when dependencies change
         }
       }, 5000);
@@ -113,7 +105,6 @@ export const useSSE = (onMessage, onBotTyping, dispatch) => {
 
     // Cleanup function - close connection on unmount
     return () => {
-      console.log('SSE: Closing connection...');
       if (eventSource) {
         eventSource.close();
         eventSourceRef.current = null;

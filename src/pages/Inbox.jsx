@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import ConversationList from '../components/inbox/ConversationList';
@@ -33,36 +33,30 @@ export const Inbox = () => {
     { skip: !selectedConversationId }
   );
 
-  // Setup SSE for real-time updates
-  useSSE(
-    (data) => {
-      // Handle new message event - invalidate RTK Query cache
-      console.log('New message received:', data);
+  // Memoize SSE callbacks to prevent reconnections
+  const handleNewMessage = useCallback((data) => {
+    dispatch(conversationsApi.util.invalidateTags(['Conversations']));
+    if (data.conversationId) {
+      dispatch(conversationsApi.util.invalidateTags([
+        { type: 'Messages', id: data.conversationId }
+      ]));
+    }
+  }, [dispatch]);
 
-      // Invalidate conversations list
-      dispatch(conversationsApi.util.invalidateTags(['Conversations']));
-
-      // Invalidate messages for this conversation
-      if (data.conversationId) {
-        dispatch(conversationsApi.util.invalidateTags([
-          { type: 'Messages', id: data.conversationId }
-        ]));
+  const handleBotTyping = useCallback((data) => {
+    setTypingConversations(prev => {
+      const newSet = new Set(prev);
+      if (data.typing) {
+        newSet.add(data.conversationId);
+      } else {
+        newSet.delete(data.conversationId);
       }
-    },
-    (data) => {
-      // Handle bot typing event
-      setTypingConversations(prev => {
-        const newSet = new Set(prev);
-        if (data.typing) {
-          newSet.add(data.conversationId);
-        } else {
-          newSet.delete(data.conversationId);
-        }
-        return newSet;
-      });
-    },
-    dispatch
-  );
+      return newSet;
+    });
+  }, []);
+
+  // Setup SSE for real-time updates
+  useSSE(handleNewMessage, handleBotTyping, dispatch);
 
   // Process conversations data
   const allConversations = conversationsData?.conversations || [];
