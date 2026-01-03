@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause } from 'lucide-react';
+import { Play, Pause, Bot } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 // Global state to track currently playing audio
@@ -129,7 +129,7 @@ AudioPlayer.propTypes = {
   messageId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
 };
 
-export const MessageBubble = ({ text, timestamp, isSent, avatar, isBot, isAudio, audioDuration, messageId }) => {
+export const MessageBubble = ({ text, timestamp, isSent, avatar, isBot, isAudio, audioDuration, messageId, senderLabel }) => {
   return (
     <div className={cn(
       "flex gap-3 mb-4",
@@ -147,6 +147,18 @@ export const MessageBubble = ({ text, timestamp, isSent, avatar, isBot, isAudio,
         "max-w-[70%] space-y-1",
         isSent && "flex flex-col items-end"
       )}>
+        {/* Sender Label for outgoing messages */}
+        {isSent && senderLabel && (
+          <div className="flex items-center gap-1 px-1">
+            {isBot && (
+              <Bot className="w-3 h-3 text-purple-500" />
+            )}
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+              {senderLabel}
+            </span>
+          </div>
+        )}
+
         {isAudio ? (
           <div className={cn(
             "rounded-2xl",
@@ -194,6 +206,7 @@ MessageBubble.propTypes = {
   isAudio: PropTypes.bool,
   audioDuration: PropTypes.number,
   messageId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  senderLabel: PropTypes.string,
 };
 
 export default MessageBubble;

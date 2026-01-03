@@ -4,9 +4,10 @@ import { Search, SlidersHorizontal } from 'lucide-react';
 import ConversationItem from './ConversationItem';
 
 export const ConversationList = ({
-  conversations,
+  conversations = [], // Default to empty array
   selectedId,
-  onSelectConversation
+  onSelectConversation,
+  loading = false
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
@@ -21,9 +22,13 @@ export const ConversationList = ({
   ];
 
   const filteredConversations = conversations.filter(conv => {
+    // Add null checks for all properties
+    const name = conv.name || conv.customer_name || conv.user_name || '';
+    const preview = conv.preview || conv.last_message || '';
+
     // Search filter
-    const matchesSearch = conv.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      conv.preview.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      preview.toLowerCase().includes(searchQuery.toLowerCase());
 
     // Platform filter
     let matchesFilter = true;
@@ -101,7 +106,12 @@ export const ConversationList = ({
 
       {/* Conversations List */}
       <div className="flex-1 overflow-y-auto">
-        {filteredConversations.length > 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center h-full text-gray-400">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-2"></div>
+            <p className="text-sm">Loading conversations...</p>
+          </div>
+        ) : filteredConversations.length > 0 ? (
           filteredConversations.map((conversation) => (
             <ConversationItem
               key={conversation.id}
@@ -121,9 +131,10 @@ export const ConversationList = ({
 };
 
 ConversationList.propTypes = {
-  conversations: PropTypes.arrayOf(PropTypes.object).isRequired,
+  conversations: PropTypes.arrayOf(PropTypes.object),
   selectedId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onSelectConversation: PropTypes.func.isRequired,
+  loading: PropTypes.bool,
 };
 
 export default ConversationList;

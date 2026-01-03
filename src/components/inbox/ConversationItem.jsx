@@ -9,6 +9,7 @@ const platformIcons = {
 };
 
 const getInitials = (name) => {
+  if (!name) return '??';
   return name
     .split(' ')
     .map(n => n[0])
@@ -36,7 +37,14 @@ export const ConversationItem = ({
   isActive,
   onClick
 }) => {
-  const { name, avatar, preview, timestamp, platform, unread } = conversation;
+  // Map API fields to component props with fallbacks
+  const name = conversation.name || conversation.user_name || conversation.customer_name || 'Unknown';
+  const preview = conversation.preview || conversation.last_message || '';
+  const timestamp = conversation.timestamp || '';
+  const platform = conversation.platform;
+  const unread = conversation.unread || conversation.unread_count || 0;
+  const avatar = conversation.avatar;
+
   const initials = getInitials(name);
   const avatarBg = getAvatarColor(name);
 

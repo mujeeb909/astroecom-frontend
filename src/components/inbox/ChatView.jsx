@@ -1,17 +1,30 @@
 import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { Send, Paperclip, Mic, X, ArrowLeft, Image, Video } from 'lucide-react';
+import { Send, Paperclip, Mic, X, ArrowLeft, Image, Video, Bot } from 'lucide-react';
 import MessageBubble from './MessageBubble';
 import { Button } from '../ui/Button';
 import { cn } from '../../utils/cn';
+import {
+  useSendMessageMutation,
+  useSendMessageWithFileMutation,
+  useToggleAutomationMutation
+} from '../../services/conversationsApi';
+import { validateFile } from '../../utils/fileUpload';
 
-export const ChatView = ({ conversation, messages, onSendMessage, onBack }) => {
+export const ChatView = ({ conversation, messages, onBack, botTyping, loading }) => {
   const [messageText, setMessageText] = useState('');
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [selectedFile, setSelectedFile] = useState(null);
   const messagesEndRef = useRef(null);
   const recordingIntervalRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  // RTK Query mutations
+  const [sendMessage, { isLoading: sendingMessage }] = useSendMessageMutation();
+  const [sendMessageWithFile, { isLoading: sendingFile }] = useSendMessageWithFileMutation();
+  const [toggleAutomation, { isLoading: togglingAutomation }] = useToggleAutomationMutation();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -40,10 +53,36 @@ export const ChatView = ({ conversation, messages, onSendMessage, onBack }) => {
     };
   }, [isRecording]);
 
-  const handleSend = () => {
-    if (messageText.trim()) {
-      onSendMessage(messageText);
+  const handleSend = async () => {
+    if (!conversation?.id) return;
+
+    try {
+      if (selectedFile) {
+        // Send message with file
+        await sendMessageWithFile({
+          conversationId: conversation.id,
+          text: messageText.trim() || '',
+          file: selectedFile
+        }).unwrap();
+
+        // Clear file
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } else if (messageText.trim()) {
+        // Send text message
+        await sendMessage({
+          conversationId: conversation.id,
+          text: messageText.trim(),
+          messageType: 'text'
+        }).unwrap();
+      }
+
+      // Clear input
       setMessageText('');
+    } catch (error) {
+      console.error('Failed to send message:', error);
     }
   };
 
@@ -51,6 +90,39 @@ export const ChatView = ({ conversation, messages, onSendMessage, onBack }) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      validateFile(file);
+      setSelectedFile(file);
+      setShowAttachmentMenu(false);
+    } catch (error) {
+      console.error('File validation error:', error);
+      alert(error.message);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleToggleAutomation = async () => {
+    if (!conversation?.id) return;
+
+    try {
+      await toggleAutomation({
+        conversationId: conversation.id
+      }).unwrap();
+    } catch (error) {
+      console.error('Failed to toggle automation:', error);
     }
   };
 
@@ -127,22 +199,51 @@ export const ChatView = ({ conversation, messages, onSendMessage, onBack }) => {
         </Button>
       </div>
 
-      {/* Messages */}
+      {/* Messages - SCROLLABLE AREA */}
       <div className="flex-1 overflow-y-auto p-4 space-y-1">
-        {messages.map((message) => (
-          <MessageBubble
-            key={message.id}
-            messageId={message.id}
-            text={message.text}
-            timestamp={message.timestamp}
-            isSent={message.isSent}
-            avatar={message.isSent ? null : conversation.avatar}
-            isBot={message.isBot}
-            isAudio={message.type === 'audio'}
-            audioDuration={message.duration}
-          />
-        ))}
-        <div ref={messagesEndRef} />
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+              <p className="text-sm text-gray-500">Loading messages...</p>
+            </div>
+          </div>
+        ) : messages.length > 0 ? (
+          <>
+            {messages.map((message) => {
+              // Map API fields to component props
+              const isSent = message.direction === 'outgoing';
+              const isBot = message.sender === 'automation';
+              const messageText = message.text || message.message || '';
+
+              // Determine sender label
+              let senderLabel = null;
+              if (isSent) {
+                senderLabel = isBot ? 'AI Bot' : 'You';
+              }
+
+              return (
+                <MessageBubble
+                  key={message.id}
+                  messageId={message.id}
+                  text={messageText}
+                  timestamp={message.timestamp || message.created_at}
+                  isSent={isSent}
+                  avatar={isSent ? null : conversation.avatar}
+                  isBot={isBot}
+                  isAudio={message.message_type === 'audio'}
+                  audioDuration={message.duration}
+                  senderLabel={senderLabel}
+                />
+              );
+            })}
+            <div ref={messagesEndRef} />
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-sm text-gray-500">No messages yet</p>
+          </div>
+        )}
       </div>
 
       {/* Input */}
@@ -255,8 +356,9 @@ export const ChatView = ({ conversation, messages, onSendMessage, onBack }) => {
 ChatView.propTypes = {
   conversation: PropTypes.object,
   messages: PropTypes.arrayOf(PropTypes.object).isRequired,
-  onSendMessage: PropTypes.func.isRequired,
   onBack: PropTypes.func,
+  botTyping: PropTypes.bool,
+  loading: PropTypes.bool,
 };
 
 export default ChatView;

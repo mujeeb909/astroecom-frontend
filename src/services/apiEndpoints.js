@@ -10,6 +10,14 @@ export const API_ENDPOINTS = {
   USER: {
     PROFILE: '/users/profile',
   },
+  CONVERSATIONS: {
+    LIST: '/conversations',
+    MESSAGES: (id) => `/conversations/${id}/messages`,
+    SEND_MESSAGE: (id) => `/conversations/${id}/messages`,
+    TAKEOVER: (id) => `/conversations/${id}/takeover`,
+    STATS: '/conversations/stats',
+    EVENTS: '/conversations/events', // SSE endpoint
+  },
 };
 
 export default API_ENDPOINTS;

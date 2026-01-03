@@ -22,13 +22,13 @@ export const DashboardLayout = ({ children }) => {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface-light-alt dark:bg-surface-dark-alt">
-      {/* Dashboard Header - Sticky */}
-      <div className="sticky top-0 z-40">
+    <div className="flex flex-col h-screen bg-surface-light-alt dark:bg-surface-dark-alt overflow-hidden">
+      {/* Dashboard Header - FIXED */}
+      <div className="flex-shrink-0 z-40">
         <Header />
       </div>
 
-      <div className="flex flex-1 relative">
+      <div className="flex flex-1 relative overflow-hidden">
         {/* Mobile Backdrop */}
         {isMobile && !isCollapsed && (
           <div
@@ -39,9 +39,9 @@ export const DashboardLayout = ({ children }) => {
 
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} className="z-50 shadow-2xl" />
         <main
-          className={`flex-1 transition-all duration-500 ease-in-out ${isCollapsed ? 'pl-28' : 'pl-28 lg:pl-80'}`}
+          className={`flex-1 transition-all duration-500 ease-in-out overflow-hidden ${isCollapsed ? 'pl-28' : 'pl-28 lg:pl-80'}`}
         >
-          <div className="h-full">
+          <div className="h-full overflow-hidden">
             {children}
           </div>
         </main>

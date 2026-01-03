@@ -1,201 +1,139 @@
 import { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import ConversationList from '../components/inbox/ConversationList';
 import ChatView from '../components/inbox/ChatView';
 import PlatformWidget from '../components/inbox/PlatformWidget';
 import { ArrowLeft } from 'lucide-react';
-
-// Mock data
-const mockConversations = [
-  {
-    id: 1,
-    name: 'Sophia Clark',
-    avatar: null,
-    preview: 'Hi there! I\'m interested in your new collection of winter materials used?',
-    timestamp: '2m',
-    platform: 'whatsapp',
-    unread: 2,
-  },
-  {
-    id: 2,
-    name: 'James Wilson',
-    avatar: null,
-    preview: 'I received my order today, but one of the items is missing. Can you help?',
-    timestamp: '5m',
-    platform: 'instagram',
-    unread: 1,
-  },
-  {
-    id: 3,
-    name: 'Olivia Bennett',
-    avatar: null,
-    preview: 'Do you have trouble with the checkout process...',
-    timestamp: '1h',
-    platform: 'whatsapp',
-    unread: 0,
-  },
-  {
-    id: 4,
-    name: 'Liam Harper',
-    avatar: null,
-    preview: 'Do you have any discounts for first-time customers?',
-    timestamp: '2h',
-    platform: 'messenger',
-    unread: 0,
-  },
-  {
-    id: 5,
-    name: 'Ava Foster',
-    avatar: null,
-    preview: 'I love your products! When will you be restocking the Summer Breeze dress?',
-    timestamp: '3h',
-    platform: 'instagram',
-    unread: 0,
-  },
-  {
-    id: 6,
-    name: 'Noah Reed',
-    avatar: null,
-    preview: 'I need to return this size. Can you help me with the process?',
-    timestamp: '4h',
-    platform: 'whatsapp',
-    unread: 0,
-  },
-  {
-    id: 7,
-    name: 'Ethan Carter',
-    avatar: null,
-    preview: 'I received my order today, but one of the items is missing. Can you help?',
-    timestamp: '5h',
-    platform: 'whatsapp',
-    unread: 2,
-  },
-];
-
-const mockMessages = {
-  1: [
-    {
-      id: 1,
-      text: 'Hello! How can I assist you today?',
-      timestamp: 'AI Bot',
-      isSent: false,
-      isBot: true,
-    },
-    {
-      id: 2,
-      text: 'Hi there! I\'m interested in your new collection. What materials are used?',
-      timestamp: '14:51 (4h ago)',
-      isSent: true,
-    },
-  ],
-  7: [
-    {
-      id: 1,
-      text: 'Hello! How can I assist you today?',
-      timestamp: 'AI Bot',
-      isSent: false,
-      isBot: true,
-    },
-    {
-      id: 2,
-      text: 'Hi, I received my order today, but one of the items is missing. Can you help?',
-      timestamp: '14:51 (4h ago)',
-      isSent: true,
-    },
-    {
-      id: 3,
-      text: 'I\'m sorry to hear that. Could you please provide your order number?',
-      timestamp: 'AI Bot',
-      isSent: false,
-      isBot: true,
-    },
-    {
-      id: 4,
-      text: '#102738',
-      timestamp: 'AI Bot',
-      isSent: true,
-    },
-    {
-      id: 5,
-      text: 'I will shortly connect you to an agent, thank you so much for your patience',
-      timestamp: 'AI Bot',
-      isSent: false,
-      isBot: true,
-    },
-    {
-      id: 6,
-      text: 'AI bot is currently handling this chat',
-      timestamp: '',
-      isSent: false,
-      isBot: true,
-    },
-  ],
-};
+import { useGetConversationsQuery, useGetMessagesQuery, conversationsApi } from '../services/conversationsApi';
+import { useSSE } from '../hooks/useSSE';
+import { sortConversationsByTimestamp, filterConversationsByPlatform } from '../utils/conversationHelpers';
 
 export const Inbox = () => {
-  const [selectedConversationId, setSelectedConversationId] = useState(7);
-  const [messages, setMessages] = useState(mockMessages);
+  const dispatch = useDispatch();
+  const [selectedConversationId, setSelectedConversationId] = useState(null);
   const [showMobileChat, setShowMobileChat] = useState(false);
+  const [platformFilter, setPlatformFilter] = useState('all');
+  const [typingConversations, setTypingConversations] = useState(new Set());
 
-  const selectedConversation = mockConversations.find(
+  // Fetch conversations from API
+  const {
+    data: conversationsData,
+    isLoading: conversationsLoading,
+    error: conversationsError
+  } = useGetConversationsQuery();
+
+  // Fetch messages for selected conversation
+  const {
+    data: messagesData,
+    isLoading: messagesLoading,
+    error: messagesError
+  } = useGetMessagesQuery(
+    { conversationId: selectedConversationId },
+    { skip: !selectedConversationId }
+  );
+
+  // Setup SSE for real-time updates
+  useSSE(
+    (data) => {
+      // Handle new message event - invalidate RTK Query cache
+      console.log('New message received:', data);
+
+      // Invalidate conversations list
+      dispatch(conversationsApi.util.invalidateTags(['Conversations']));
+
+      // Invalidate messages for this conversation
+      if (data.conversationId) {
+        dispatch(conversationsApi.util.invalidateTags([
+          { type: 'Messages', id: data.conversationId }
+        ]));
+      }
+    },
+    (data) => {
+      // Handle bot typing event
+      setTypingConversations(prev => {
+        const newSet = new Set(prev);
+        if (data.typing) {
+          newSet.add(data.conversationId);
+        } else {
+          newSet.delete(data.conversationId);
+        }
+        return newSet;
+      });
+    },
+    dispatch
+  );
+
+  // Process conversations data
+  const allConversations = conversationsData?.conversations || [];
+  const sortedConversations = sortConversationsByTimestamp(allConversations);
+  const filteredConversations = filterConversationsByPlatform(sortedConversations, platformFilter);
+
+  // Get selected conversation
+  const selectedConversation = filteredConversations.find(
     (c) => c.id === selectedConversationId
   );
 
-  const currentMessages = messages[selectedConversationId] || [];
+  // Get messages for selected conversation
+  const currentMessages = messagesData?.messages || [];
+
+  // Check if bot is typing for selected conversation
+  const isBotTyping = typingConversations.has(selectedConversationId);
 
   const handleSelectConversation = (id) => {
     setSelectedConversationId(id);
     setShowMobileChat(true);
   };
 
-  const handleSendMessage = (messageData) => {
-    let newMessage;
-
-    if (typeof messageData === 'string') {
-      // Text message
-      newMessage = {
-        id: Date.now(),
-        text: messageData,
-        timestamp: 'Just now',
-        isSent: true,
-      };
-    } else {
-      // Audio or other message types
-      newMessage = {
-        id: Date.now(),
-        ...messageData,
-        isSent: true,
-      };
-    }
-
-    setMessages((prev) => ({
-      ...prev,
-      [selectedConversationId]: [...(prev[selectedConversationId] || []), newMessage],
-    }));
+  const handleFilterChange = (platform) => {
+    setPlatformFilter(platform);
   };
 
   const handleBackToList = () => {
     setShowMobileChat(false);
   };
 
+  // Show error state if API call fails
+  if (conversationsError) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <p className="text-red-500 mb-2">Failed to load conversations</p>
+            <p className="text-sm text-gray-500">
+              {conversationsError?.data?.message || conversationsError?.error || 'Unknown error'}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-primary text-white rounded-lg"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="h-full flex overflow-hidden">
-        {/* Conversations List - Hidden on mobile when chat is open */}
+        {/* Conversations List - Hidden on mobile when chat is open - FIXED HEIGHT */}
         <div className={`
-          w-full md:w-80 lg:w-96 flex-shrink-0
+          w-full md:w-80 lg:w-96 flex-shrink-0 h-full
           ${showMobileChat ? 'hidden md:block' : 'block'}
         `}>
           <ConversationList
-            conversations={mockConversations}
+            conversations={filteredConversations}
             selectedId={selectedConversationId}
             onSelectConversation={handleSelectConversation}
+            loading={conversationsLoading}
           />
         </div>
 
-        {/* Chat View - Full width on mobile, flex-1 on desktop */}
+        {/* Chat View - Full width on mobile, flex-1 on desktop - FIXED HEIGHT */}
         <div className={`
-          flex-1 flex
+          flex-1 flex h-full
           ${!showMobileChat ? 'hidden md:flex' : 'flex'}
         `}>
           {/* Mobile back button */}
@@ -208,17 +146,18 @@ export const Inbox = () => {
             </button>
           </div>
 
-          <div className="flex-1">
+          <div className="flex-1 h-full">
             <ChatView
               conversation={selectedConversation}
               messages={currentMessages}
-              onSendMessage={handleSendMessage}
               onBack={handleBackToList}
+              botTyping={isBotTyping}
+              loading={messagesLoading}
             />
           </div>
 
           {/* Platform Widget - Hidden on mobile and tablet */}
-          <div className="hidden xl:block">
+          <div className="hidden xl:block h-full overflow-y-auto">
             <PlatformWidget contact={selectedConversation} />
           </div>
         </div>
