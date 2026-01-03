@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Send, Paperclip, Mic, X, ArrowLeft, Image, Video, Bot } from 'lucide-react';
 import MessageBubble from './MessageBubble';
+import DateSeparator from './DateSeparator';
 import { Button } from '../ui/Button';
 import { cn } from '../../utils/cn';
 import {
@@ -10,6 +11,7 @@ import {
   useToggleAutomationMutation
 } from '../../services/conversationsApi';
 import { validateFile } from '../../utils/fileUpload';
+import { formatMessageTime, addDateSeparators } from '../../utils/dateTimeHelpers';
 
 export const ChatView = ({ conversation, messages, onBack, botTyping, loading }) => {
   const [messageText, setMessageText] = useState('');
@@ -210,11 +212,12 @@ export const ChatView = ({ conversation, messages, onBack, botTyping, loading })
           </div>
         ) : messages.length > 0 ? (
           <>
-            {messages.map((message) => {
+            {addDateSeparators(messages).map((message) => {
               // Map API fields to component props
               const isSent = message.direction === 'outgoing';
               const isBot = message.sender === 'automation';
               const messageText = message.text || message.message || '';
+              const messageTime = formatMessageTime(message.timestamp || message.created_at);
 
               // Determine sender label
               let senderLabel = null;
@@ -223,18 +226,25 @@ export const ChatView = ({ conversation, messages, onBack, botTyping, loading })
               }
 
               return (
-                <MessageBubble
-                  key={message.id}
-                  messageId={message.id}
-                  text={messageText}
-                  timestamp={message.timestamp || message.created_at}
-                  isSent={isSent}
-                  avatar={isSent ? null : conversation.avatar}
-                  isBot={isBot}
-                  isAudio={message.message_type === 'audio'}
-                  audioDuration={message.duration}
-                  senderLabel={senderLabel}
-                />
+                <div key={message.id}>
+                  {/* Date Separator */}
+                  {message.showDateSeparator && message.dateLabel && (
+                    <DateSeparator label={message.dateLabel} />
+                  )}
+
+                  {/* Message Bubble */}
+                  <MessageBubble
+                    messageId={message.id}
+                    text={messageText}
+                    timestamp={messageTime}
+                    isSent={isSent}
+                    avatar={isSent ? null : conversation.avatar}
+                    isBot={isBot}
+                    isAudio={message.message_type === 'audio'}
+                    audioDuration={message.duration}
+                    senderLabel={senderLabel}
+                  />
+                </div>
               );
             })}
             <div ref={messagesEndRef} />
