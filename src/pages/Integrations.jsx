@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import customIntegrationIllustration from '../assets/custom_integration_illustration.svg';
 import { useSelector } from 'react-redux';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import IntegrationCard from '../components/features/IntegrationCard';
@@ -145,6 +146,9 @@ export const Integrations = () => {
       // Show only platforms that are NOT connected
       return integrationsList.filter(i => !i.connected);
     }
+    if (activeTab === 'Custom Integrations') {
+      return []; // Custom integrations shows empty state
+    }
     return [];
   };
 
@@ -202,6 +206,46 @@ export const Integrations = () => {
               </section>
             )}
 
+          </div>
+        ) : activeTab === 'Custom Integrations' ? (
+          /* Custom Integrations Empty State */
+          <div className="flex flex-col items-center justify-center py-20 px-4">
+            <div className="max-w-md w-full text-center">
+              {/* Illustration */}
+              <div className="mb-8">
+                <img
+                  src={customIntegrationIllustration}
+                  alt="Custom Integration"
+                  className="w-80 mx-auto"
+                />
+              </div>
+
+              {/* Message */}
+              <h3 className="text-xl font-bold text-text-primary-light dark:text-text-primary-dark mb-4">
+                Please Email At The Following Address To Enable Custom Integration
+              </h3>
+
+              {/* Email Link */}
+              <a
+                href="mailto:Management@The-Creative-Street.Com"
+                className="text-primary hover:underline text-lg font-medium mb-6 inline-block"
+              >
+                Management@The-Creative-Street.Com
+              </a>
+
+              {/* Email Button */}
+              <div className="mt-6">
+                <a
+                  href="mailto:Management@The-Creative-Street.Com"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg font-medium transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Email now
+                </a>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="text-center py-20 text-text-secondary-light dark:text-text-secondary-dark font-medium">

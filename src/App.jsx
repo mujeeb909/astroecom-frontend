@@ -6,6 +6,7 @@ import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import Inbox from './pages/Inbox';
 import Integrations from './pages/Integrations';
+import AIAgentTesting from './pages/AIAgentTesting';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ComingSoon from './pages/ComingSoon';
@@ -35,7 +36,7 @@ function App() {
               <Route path="/dashboard/reports" element={<ComingSoon />} />
               <Route path="/dashboard/campaigns" element={<ComingSoon />} />
               <Route path="/dashboard/customers" element={<ComingSoon />} />
-              <Route path="/dashboard/ai-agent" element={<ComingSoon />} />
+              <Route path="/dashboard/ai-agent" element={<AIAgentTesting />} />
               <Route path="/dashboard/sentiment" element={<ComingSoon />} />
             </Route>
 

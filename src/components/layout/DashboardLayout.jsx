@@ -23,8 +23,10 @@ export const DashboardLayout = ({ children }) => {
 
   return (
     <div className="flex flex-col min-h-screen bg-surface-light-alt dark:bg-surface-dark-alt">
-
-      <Header />
+      {/* Dashboard Header - Sticky */}
+      <div className="sticky top-0 z-40">
+        <Header />
+      </div>
 
       <div className="flex flex-1 relative">
         {/* Mobile Backdrop */}
