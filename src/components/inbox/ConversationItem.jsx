@@ -1,10 +1,13 @@
 import PropTypes from 'prop-types';
 import { cn } from '../../utils/cn';
+import instagramIcon from '../../assets/instagram_icon.svg'
+import whatsappIcon from '../../assets/whatsapp_Icon.svg'
+import facebookIcon from '../../assets/facebook_icon.svg'
 
 const platformIcons = {
-  whatsapp: '💬',
-  instagram: '📷',
-  facebook: '👤',
+  whatsapp: whatsappIcon,
+  instagram: instagramIcon,
+  facebook: facebookIcon,
   messenger: '💬',
 };
 
@@ -32,6 +35,47 @@ const getAvatarColor = (name) => {
   return colors[index];
 };
 
+// Format timestamp for conversation list (WhatsApp style)
+const formatConversationTime = (timestamp) => {
+  if (!timestamp) return '';
+
+  const messageDate = new Date(timestamp);
+  if (isNaN(messageDate.getTime())) return '';
+
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  // Reset time to compare only dates
+  const resetTime = (date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  };
+
+  const msgDate = resetTime(messageDate);
+  const todayDate = resetTime(today);
+  const yesterdayDate = resetTime(yesterday);
+
+  if (msgDate.getTime() === todayDate.getTime()) {
+    // Today - show time only
+    return messageDate.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  } else if (msgDate.getTime() === yesterdayDate.getTime()) {
+    // Yesterday
+    return 'Yesterday';
+  } else {
+    // Older - show date
+    return messageDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+};
+
 export const ConversationItem = ({
   conversation,
   isActive,
@@ -40,7 +84,8 @@ export const ConversationItem = ({
   // Map API fields to component props with fallbacks
   const name = conversation.name || conversation.user_name || conversation.customer_name || 'Unknown';
   const preview = conversation.preview || conversation.last_message || '';
-  const timestamp = conversation.timestamp || '';
+  const rawTimestamp = conversation.timestamp || conversation.last_message_timestamp || '';
+  const timestamp = formatConversationTime(rawTimestamp);
   const platform = conversation.platform;
   const unread = conversation.unread || conversation.unread_count || 0;
   const avatar = conversation.avatar;
@@ -73,8 +118,16 @@ export const ConversationItem = ({
           </div>
         )}
         {platform && (
-          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[#1a1d29] rounded-full flex items-center justify-center text-[10px]">
-            {platformIcons[platform] || '💬'}
+          <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center p-0.5">
+            {platformIcons[platform] ? (
+              <img
+                src={platformIcons[platform]}
+                alt={platform}
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <span className="text-[10px]">💬</span>
+            )}
           </div>
         )}
       </div>

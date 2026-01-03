@@ -104,3 +104,50 @@ export const addDateSeparators = (messages) => {
     };
   });
 };
+
+/**
+ * Format timestamp for conversation list/header (WhatsApp style)
+ * Shows time for today, "Yesterday", or date for older messages
+ * @param {string|Date} timestamp - ISO timestamp or Date object
+ * @returns {string} Formatted timestamp
+ */
+export const formatConversationTime = (timestamp) => {
+  if (!timestamp) return '';
+
+  const messageDate = new Date(timestamp);
+  if (isNaN(messageDate.getTime())) return '';
+
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  // Reset time to compare only dates
+  const resetTime = (date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  };
+
+  const msgDate = resetTime(messageDate);
+  const todayDate = resetTime(today);
+  const yesterdayDate = resetTime(yesterday);
+
+  if (msgDate.getTime() === todayDate.getTime()) {
+    // Today - show time only
+    return messageDate.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  } else if (msgDate.getTime() === yesterdayDate.getTime()) {
+    // Yesterday
+    return 'Yesterday';
+  } else {
+    // Older - show date
+    return messageDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+};
+

@@ -11,7 +11,7 @@ import {
   useToggleAutomationMutation
 } from '../../services/conversationsApi';
 import { validateFile } from '../../utils/fileUpload';
-import { formatMessageTime, addDateSeparators } from '../../utils/dateTimeHelpers';
+import { formatMessageTime, addDateSeparators, formatConversationTime } from '../../utils/dateTimeHelpers';
 
 export const ChatView = ({ conversation, messages, onBack, botTyping, loading }) => {
   const [messageText, setMessageText] = useState('');
@@ -165,8 +165,29 @@ export const ChatView = ({ conversation, messages, onBack, botTyping, loading })
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-surface-dark relative">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-white/10">
+      {/* Automation Banner - FIXED */}
+      {conversation.automation_enabled && (
+        <div className="bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500 p-3 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Bot className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+              <span className="text-sm text-purple-700 dark:text-purple-300">
+                AI Assistant is handling this conversation
+              </span>
+            </div>
+            <button
+              onClick={handleToggleAutomation}
+              disabled={togglingAutomation}
+              className="text-xs px-3 py-1 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
+            >
+              {togglingAutomation ? 'Loading...' : 'Take Control'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Original Header - Platform and Take Over Button */}
+      <div className="flex items-center justify-between px-4 pt-3 flex-shrink-0">
         <div className="flex items-center gap-3">
           {/* Mobile Back Button */}
           {onBack && (
@@ -178,19 +199,9 @@ export const ChatView = ({ conversation, messages, onBack, botTyping, loading })
             </button>
           )}
 
-          <img
-            src={conversation.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.name)}&background=4142FE&color=fff`}
-            alt={conversation.name}
-            className="w-10 h-10 rounded-full"
-          />
-          <div>
-            <h3 className="font-semibold text-text-primary-light dark:text-text-primary-dark">
-              {conversation.name}
-            </h3>
-            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
-              {conversation.platform || 'WhatsApp'}
-            </p>
-          </div>
+          <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
+            {conversation.platform || 'WhatsApp'}
+          </p>
         </div>
 
         <Button
@@ -199,6 +210,30 @@ export const ChatView = ({ conversation, messages, onBack, botTyping, loading })
         >
           Take Over
         </Button>
+      </div>
+
+      {/* Info Row - Avatar, Name, and Timestamp */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-white/10 flex-shrink-0">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          {/* Avatar */}
+          <img
+            src={conversation.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.name || conversation.user_name)}&background=4142FE&color=fff`}
+            alt={conversation.name || conversation.user_name}
+            className="w-10 h-10 rounded-full flex-shrink-0"
+          />
+
+          {/* Name */}
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-text-primary-light dark:text-text-primary-dark truncate">
+              {conversation.name || conversation.user_name}
+            </h3>
+          </div>
+        </div>
+
+        {/* Last Message Time */}
+        <div className="text-xs text-text-secondary-light dark:text-text-secondary-dark flex-shrink-0 ml-2">
+          {formatConversationTime(conversation.last_message_timestamp || conversation.updated_at)}
+        </div>
       </div>
 
       {/* Messages - SCROLLABLE AREA */}

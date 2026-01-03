@@ -1,14 +1,41 @@
 import PropTypes from 'prop-types';
 import { MessageSquare } from 'lucide-react';
 import { Button } from '../ui/Button';
+import whatsappIcon from '../../assets/whatsapp_Icon.svg'
+import instagramIcon from '../../assets/instagram_icon.svg'
+import facebookIcon from '../../assets/facebook_icon.svg'
 
-const platformData = [
-  { name: 'WhatsApp', count: 2, color: 'text-green-500', icon: '💬' },
-  { name: 'Instagram', count: 2, color: 'text-pink-500', icon: '📷' },
-  { name: 'Instagram', count: 2, color: 'text-pink-500', icon: '📷' },
-];
+export const PlatformWidget = ({ contact, conversations = [] }) => {
+  // Calculate platform counts from conversations
+  const platformCounts = conversations.reduce((acc, conv) => {
+    const platform = conv.platform?.toLowerCase();
+    if (platform) {
+      acc[platform] = (acc[platform] || 0) + 1;
+    }
+    return acc;
+  }, {});
 
-export const PlatformWidget = ({ contact }) => {
+  const platformData = [
+    {
+      name: 'WhatsApp',
+      count: platformCounts.whatsapp || 0,
+      color: 'text-green-500',
+      icon: whatsappIcon
+    },
+    {
+      name: 'Instagram',
+      count: platformCounts.instagram || 0,
+      color: 'text-pink-500',
+      icon: instagramIcon
+    },
+    {
+      name: 'Facebook',
+      count: platformCounts.facebook || 0,
+      color: 'text-blue-500',
+      icon: facebookIcon
+    },
+  ];
+
   return (
     <div className="w-80 bg-white dark:bg-surface-dark border-l border-gray-200 dark:border-white/10 p-4 space-y-4 overflow-y-auto">
       {/* Urgent Section */}
@@ -43,7 +70,13 @@ export const PlatformWidget = ({ contact }) => {
           {platformData.map((platform, index) => (
             <div key={index} className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-lg">{platform.icon}</span>
+                <span className="text-lg">
+                  <img
+                    src={platform.icon}
+                    alt={platform.name}
+                    className="w-6 h-6"
+                  />
+                </span>
                 <span className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark">
                   {platform.name}
                 </span>
@@ -89,6 +122,7 @@ export const PlatformWidget = ({ contact }) => {
 
 PlatformWidget.propTypes = {
   contact: PropTypes.object,
+  conversations: PropTypes.arrayOf(PropTypes.object),
 };
 
 export default PlatformWidget;

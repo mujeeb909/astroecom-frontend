@@ -152,7 +152,10 @@ export const Inbox = () => {
 
           {/* Platform Widget - Hidden on mobile and tablet */}
           <div className="hidden xl:block h-full overflow-y-auto">
-            <PlatformWidget contact={selectedConversation} />
+            <PlatformWidget
+              contact={selectedConversation}
+              conversations={allConversations}
+            />
           </div>
         </div>
       </div>
